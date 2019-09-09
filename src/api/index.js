@@ -6,16 +6,15 @@ const Web3 = require('web3');
 export default ({ config, db }) => {
     const testnet = 'https://rinkeby.infura.io/';
     const web3 = new Web3(new Web3.providers.HttpProvider(testnet));
-    web3.eth.sendTransaction
     let api = Router();
-    api.use(bodyParser.urlencoded());
+    api.use(bodyParser.urlencoded());  // parse body in post request
 
-    // expose api version
+    // Expose api version
     api.get('/', (req, res) => {
         res.json({ version });
     }),
 
-    // return balance in Address
+    // Return balance in Address
     api.get('/getBalance/:address', (request, res) => {
         var walletAddress = request.params.address;
         var balance = web3.eth.getBalance(walletAddress); //Will give value in.
@@ -30,6 +29,9 @@ export default ({ config, db }) => {
         res.json({'address':account.address,'private_key':account.privateKey});
     }),
 
+    // Create a transaction to send ETH from one address to another. It can receive 3 raw JSON
+    // params: privateKey of the source ETH address, destination is the ETH destination 
+    // address and amount the number of ETH to be send.
     api.post('/transaction', (request, res) => {
         var privateKey = request.body.private_key;
         var destinationAddress = request.body.destination;
