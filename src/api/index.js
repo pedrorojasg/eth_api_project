@@ -18,15 +18,17 @@ export default ({ config, db }) => {
     api.get('/getBalance/:address', (request, res) => {
         var walletAddress = request.params.address;
         var balance = web3.eth.getBalance(walletAddress); //Will give value in.
-        balance.then(function(result) {
-            res.json({'balance':parseInt(result)});
+        balance.then((result) => {
+            res.json({'response':'success','balance':parseInt(result)});
+        }).catch((errorMsg) => {
+            res.json({'response':'error','message':errorMsg})
         });
 	}),
     
     // Create wallet account and return address and private_key
     api.get('/createWallet/', (request, res) => {
         var account = web3.eth.accounts.create();
-        res.json({'address':account.address,'private_key':account.privateKey});
+        res.json({'response':'success','address':account.address,'private_key':account.privateKey});
     }),
 
     // Create a transaction to send ETH from one address to another. It can receive 3 raw JSON
@@ -40,16 +42,16 @@ export default ({ config, db }) => {
         var addedAccount = web3.eth.accounts.wallet.add(originAccount);
         web3.eth.sendTransaction(
             {from:addedAccount.address,to:destinationAddress,gas:"2000000",value:amount})
-            .on('transactionHash', function(hash){
-                res.json({'response':'success','transaction_hash':hash});
+            .on('transactionHash', (hash) => {
+                res.json({'response':'success','transaction_hash':hash,'body_request':request.body});
             })
-            .on('receipt', function(receipt){
-                res.json(request.body);
+            .on('receipt', (receipt) => {
+                res.json({'response':'error','body_request':request.body});
             })
-            .on('confirmation', function(confirmationNumber, receipt){
-                res.json(request.body);
+            .on('confirmation', (confirmationNumber, receipt) => {
+                res.json({'response':'error','body_request':request.body});
             })
-            .on('error', console.error); // If a out of gas error, the second parameter is the receipt.
+            .on('error', console.log); // If a out of gas error, the second parameter is the receipt.
 	})
 
 	return api;
